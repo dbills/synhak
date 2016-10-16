@@ -1,11 +1,11 @@
 // hall effect pin assignemnts
-const int HALL_A = 7;
-const int HALL_B = 8;
-const int HALL_C = 9;
+const int HALL_A = 2;
+const int HALL_B = 3;
+const int HALL_C = 4;
 // hall effect bit assignment
-const int HALL_A_BIT = 1;
-const int HALL_B_BIT = 2;
-const int HALL_C_BIT = 4;
+const int HALL_A_BIT = 4;
+const int HALL_B_BIT = 1;
+const int HALL_C_BIT = 2;
 // misc control panel digital IO functions
 const int MOTOR_BRAKE = 4;
 const int SPEED_PWN = 5;
@@ -26,11 +26,6 @@ const unsigned int SPEED_SAMPLE_TIME = 1000; // time between sampling speed inpu
 speed_input_t last_speed_input;
 
 /*
-  ring buffer or last three hall sensor reads
-*/
-hall_state_t hall_buffer[3];
-
-/*
   your sensor wiring may vary.  
   you must have the sensor bit numbers set up properly so that
   the following is true:
@@ -42,5 +37,7 @@ hall_state_t hall_buffer[3];
   possible patterns for one comlete
   revolution of motor
  */
-typedef hall_state_t direction_table_t[3][3];
-
+const int HALL_PATTERNS = 6; 
+const int HALL_NUMBERS = 6;
+typedef hall_state_t direction_table_t[ HALL_PATTERNS ][ HALL_NUMBERS];
+  
