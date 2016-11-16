@@ -1,7 +1,7 @@
 // hall effect pin assignemnts
-const int HALL_A = 2;
-const int HALL_B = 3;
-const int HALL_C = 4;
+const int HALL_A = 4;
+const int HALL_B = 5;
+const int HALL_C = 6;
 // hall effect bit assignment
 const int HALL_A_BIT = 4;
 const int HALL_B_BIT = 1;

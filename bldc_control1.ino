@@ -6,7 +6,7 @@
 #endif
 
 #include "defines.h"
-
+#define DELAYTIME 100
 /*
   ring buffer or last three hall sensor reads
 */
@@ -94,6 +94,7 @@ unsigned int hall_buffer_index=0;
 unsigned int rotations=0;
 unsigned long rotations_timestamp=0;
 int last_direction=0;
+unsigned int count=0;
 
 void log_motor(int direction,const direction_table_t &table) {
   unsigned int pattern;
@@ -102,17 +103,22 @@ void log_motor(int direction,const direction_table_t &table) {
       rotations+=direction;
       memset(hall_buffer,0,sizeof(hall_buffer));
       hall_buffer_index=0;  
-      Serial.print("revolutions-");
-      Serial.print(rotations/2);
-      Serial.print(";rpm=");
+      if(count++%DELAYTIME==0) {
+        Serial.print("revolutions-");
+        Serial.print(rotations/2);
+        //Serial.println();
+        Serial.print(";rpm=");
+      }
       unsigned long current_time = millis();
       if(rotations_timestamp!=0) {
         unsigned long deltaT = current_time - rotations_timestamp;
         const float rpm = 1.0/((float)deltaT/1000.0/60.0);
-        Serial.print(rpm/2);
+        if(count%DELAYTIME==0) {
+          Serial.println(rpm/2);
+        }
       }
       rotations_timestamp = current_time;
-      Serial.println();  
+      //Serial.println();  
     }
 }
 void loop() {
@@ -125,8 +131,8 @@ void loop() {
     hall_buffer[hall_buffer_index++]=hall_state;
     if(hall_buffer_index == HALL_NUMBERS)
       hall_buffer_index=0;
-    print_buffer();
-    Serial.println();
+    //print_buffer();
+    //Serial.println();
     log_motor(1,forward_patterns);
     log_motor(-1,reverse_patterns);
 //    Serial.print(";Hall=");
