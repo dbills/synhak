@@ -6,11 +6,27 @@
 #endif
 
 #include "defines.h"
+#include "ds1809.h"
+
 #define DELAYTIME 100
 /*
   ring buffer or last three hall sensor reads
 */
 hall_state_t hall_buffer[HALL_NUMBERS];
+ds1809 pot1(2,3);
+hall_state_t  last_hall_state=0;
+unsigned int  hall_buffer_index=0;
+
+// total rotations since last cleared 
+int  rotations=0;
+
+// use for rpm calculations
+unsigned long rotations_timestamp=0;
+int rotation_count=0;
+
+int           last_direction=0;   // last known motor direction
+unsigned int  count=0;
+unsigned int  last_rpm=0;         // last calculated rpm
 
 direction_table_t reverse_patterns={
   { 1,3,2,6,4,5},
@@ -68,16 +84,44 @@ void read_hall2() {
   Serial.println();
 }
 
-int read_speed_control() {
-  analogRead(SPEED_INPUT);
+// return true if the speed control is in idle
+// position
+inline boolean is_idle(unsigned int setting) {
+  return (setting > ROCKER_IDLE_MIN && setting < ROCKER_IDLE_MAX);
+}
+
+inline void idle_motor() {
+  pot1.set_target(0);
+}
+int get_rpm() {
+  return 0;
+}
+inline void change_direction(int direction) {
+    
+}
+void read_speed_control() {
+  unsigned int setting = analogRead(SPEED_INPUT);
+  if(is_idle(setting)) 
+    idle_motor();
+  else if(setting > ROCKER_IDLE_MAX) {
+    if(last_direction == FORWARD)    
+      pot1.set_target(setting / ROCKER_FORWARD_SCALE);
+    else
+      change_direction(FORWARD);
+  } else {
+    if(last_direction == REVERSE)
+      pot1.set_target(setting / ROCKER_REVERSE_SCALE);
+    else 
+      change_direction(REVERSE);
+  }
+
 }
 int read_brake_control() {
   return 0;
 }
 int read_reset_button() {
 }
-void set_motor_speed() {
-}
+
 void set_counter() {
 }
 
@@ -89,14 +133,18 @@ void setup() {
   pinMode(HALL_B,INPUT_PULLUP);
   pinMode(HALL_C,INPUT_PULLUP);
 }
-hall_state_t last_hall_state=0;
-unsigned int hall_buffer_index=0;
-unsigned int rotations=0;
-unsigned long rotations_timestamp=0;
-int last_direction=0;
-unsigned int count=0;
 
-void log_motor(int direction,const direction_table_t &table) {
+void calculate_rpm() {
+  unsigned long current_time = millis();
+  if(rotations_timestamp!=0) {
+    unsigned long deltaT = current_time - rotations_timestamp;
+    last_rpm = float(rotation_count/2*60) / ( (float)deltaT/1000.0);
+  }
+  rotations_timestamp = current_time;
+  rotation_count = rotations;
+}
+
+void log_motor(const int direction,const direction_table_t &table) {
   unsigned int pattern;
     const bool running = is_running(table,pattern);
     if(running) {    
@@ -104,28 +152,18 @@ void log_motor(int direction,const direction_table_t &table) {
       memset(hall_buffer,0,sizeof(hall_buffer));
       hall_buffer_index=0;  
       if(count++%DELAYTIME==0) {
+        calculate_rpm();
         Serial.print("revolutions-");
         Serial.print(rotations/2);
         //Serial.println();
         Serial.print(";rpm=");
       }
-      unsigned long current_time = millis();
-      if(rotations_timestamp!=0) {
-        unsigned long deltaT = current_time - rotations_timestamp;
-        const float rpm = 1.0/((float)deltaT/1000.0/60.0);
-        if(count%DELAYTIME==0) {
-          Serial.println(rpm/2);
-        }
-      }
-      rotations_timestamp = current_time;
       //Serial.println();  
     }
 }
-void loop() {
 
-
-  //  read_speed_control();
-  
+void read_motor()
+{
   hall_state_t hall_state = read_hall();
   if(hall_state!=last_hall_state) {
     hall_buffer[hall_buffer_index++]=hall_state;
@@ -133,23 +171,26 @@ void loop() {
       hall_buffer_index=0;
     //print_buffer();
     //Serial.println();
-    log_motor(1,forward_patterns);
-    log_motor(-1,reverse_patterns);
+    log_motor(FORWARD,forward_patterns);
+    log_motor(REVERSE,reverse_patterns);
 //    Serial.print(";Hall=");
 //    Serial.println(hall_state);
     last_hall_state = hall_state;
   }  
-  int speed = read_speed_control();
+}
+
+void loop() {
+  pot1.service();
+  read_motor();
+  read_speed_control();
   int brake = read_brake_control(); // this'll probably be wired straight to motor
   int reset = read_reset_button();
 
   
-  set_motor_speed();
   set_counter();
   
-  
-  //read_hall2();
-  //delay(500);
+
 }
 
-
+void speed_up() {
+}
