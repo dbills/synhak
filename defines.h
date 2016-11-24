@@ -11,6 +11,23 @@ const int MOTOR_BRAKE = 4;
 const int SPEED_PWN = 5;
 // variable resistor input for motor speed control
 const int SPEED_INPUT = 1;
+// min and max values for analog read of motor control rocker switch pot
+const int MIN_ROCKER = 0;
+const int MAX_ROCKER = 1023;
+// dead space on speed control rocker that we consider "idle" position  
+const int ROCKER_DEADZONE = 12;
+const int ROCKER_CENTER = (MAX_ROCKER - MIN_ROCKER) / 2; 
+const int ROCKER_IDLE_MIN = ROCKER_CENTER - ROCKER_DEADZONE;
+const int ROCKER_IDLE_MAX = ROCKER_CENTER + ROCKER_DEADZONE;
+const int ROCKER_FORWARD_RANGE = MAX_ROCKER - ROCKER_IDLE_MAX;
+const int ROCKER_REVERSE_RANGE = ROCKER_IDLE_MIN - MIN_ROCKER ;
+const int POT_WIPER_STEPS = 64; 
+const int ROCKER_FORWARD_SCALE = ROCKER_FORWARD_RANGE / POT_WIPER_STEPS;
+const int ROCKER_REVERSE_SCALE = ROCKER_REVERSE_RANGE / POT_WIPER_STEPS;
+
+const int FORWARD =  1;
+const int STOPPED =  0;
+const int REVERSE = -1;
 
 typedef unsigned int hall_state_t;
 // external pot is gnd = max speed
