@@ -4,15 +4,19 @@
 #include <fake_serial.h>
 #include <memory.h>
 #endif
+
 #include "ds1809.h"
 
-ds1809::ds1809(int uc_pin,int dc_pin):
+ds1809::ds1809(const unsigned int uc_pin, const unsigned int dc_pin):
+  wiper_target(0),
+  is_pulsing(0),
+  pulse_start(0),
+  pulse_stop(0),
+  wiper_direction(0),
   wiper_position(0),
   uc_pin(uc_pin),
   dc_pin(dc_pin),
-  pulse_start(0),
-  pulse_stop(0),
-  wiper_direction(0)
+  dc_count(0)
 {
   pinMode(uc_pin,OUTPUT);
   pinMode(dc_pin,OUTPUT);
@@ -38,7 +42,8 @@ void ds1809::update_wiper_position(int wiper_direction)
 
 void ds1809::service() {
   if(pulse_start>0) {
-    if((abs(millis()-pulse_start) > pulse_width ) ) {
+    // note: fear not, unsigned long rollover makes this work ok
+    if(millis()-pulse_start > pulse_width ) {
       reset();
       update_wiper_position(wiper_direction);
     }
@@ -56,18 +61,45 @@ void ds1809::service() {
     }
   }
 }
+/*
+  Reset uc and dc pins after a pulse has completed.
 
+  Begin timer for amount of time pins have been high.
+
+  Check if we've sent more than 64 consecutive "down" pulses
+  and if so, we will assume the pot wiper is at 0
+  and resynch our current notion of the pot wiper just in case
+  something has gone wrong somehow.
+ */
 void ds1809::reset() {
   digitalWrite(uc_pin,HIGH);
   digitalWrite(dc_pin,HIGH);
   pulse_stop = millis();
   pulse_start=0;
+  if(dc_count>64) {
+    wiper_position=0;
+  }
 //  Serial.println("reset");
 }
+
 static int column_count=0;
+
+void ds1809::pulse_uc() { 
+  dc_count=0;
+  wiper_direction = 1; pulse_pin(uc_pin); 
+}
+
+void ds1809::pulse_dc() { 
+  dc_count++;
+  wiper_direction =-1; 
+  pulse_pin(dc_pin); 
+}
+
+
 void ds1809::pulse_pin(unsigned int pin) {
   if(pulse_start==0) {
-    const int delta = abs(millis()-pulse_stop);
+    // note: unsigned long rollover makes this work ok
+    const unsigned int delta = millis()-pulse_stop;
     if(delta > off_time) {
       pulse_stop=0;
 //      Serial.print(delta);

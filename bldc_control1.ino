@@ -43,14 +43,17 @@ direction_table_t forward_patterns={
   { 3,1,5,4,6,2},
   { 1,5,4,6,2,3}
 };
+
 void print_buffer() {
   for(int i=0;i<HALL_NUMBERS;i++) {
     Serial.print(hall_buffer[i]);
   }
 }
 /*
-   return true if motor is running in the direction
+  return true if motor is running in the direction
   specified by TABLE
+
+  out: pattern is the matched pattern
 */
 bool is_running(const direction_table_t &table,unsigned int &pattern) {
   for(int i=0;i<HALL_PATTERNS;i++) {
@@ -61,6 +64,13 @@ bool is_running(const direction_table_t &table,unsigned int &pattern) {
   }
   return false;
 }
+/*
+  same as is_running arity 2, but does not use output pattern
+ */
+inline bool is_running(const direction_table_t &table) {
+  unsigned int unused;
+  return is_running(table,unused);
+}
 
 /*
   read hall effect sensors and return 
@@ -68,7 +78,7 @@ bool is_running(const direction_table_t &table,unsigned int &pattern) {
   any other value is a fault of some sort
   as no two hall sensors should be on at the same
   time
- */
+*/
 hall_state_t read_hall() {
   return 
     ( digitalRead(HALL_A) ? 0 :HALL_A_BIT ) +
@@ -78,7 +88,7 @@ hall_state_t read_hall() {
 
 // return true if the speed control is in idle
 // position
-inline boolean is_idle(unsigned int setting) {
+inline bool is_idle(unsigned int setting) {
   return (setting > ROCKER_IDLE_MIN && setting < ROCKER_IDLE_MAX);
 }
 
@@ -121,7 +131,7 @@ void read_speed_control() {
       change_direction(FORWARD,target);
   } else if(setting < ROCKER_IDLE_MIN) {
     const int target = ( POT_WIPER_STEPS - 1) -
-                       ( (float)(setting - MIN_ROCKER ) / ROCKER_REVERSE_SCALE );
+      ( (float)(setting - MIN_ROCKER ) / ROCKER_REVERSE_SCALE );
     //Serial.print("R");
     //Serial.println(target);
     if(last_direction == REVERSE)
@@ -135,6 +145,7 @@ int read_brake_control() {
   return 0;
 }
 int read_reset_button() {
+  return 0;
 }
 // update LCD
 void set_counter() {
@@ -143,7 +154,7 @@ void set_counter() {
 extern void lcd_setup();
 void setup() {
   Serial.begin(9600);
-//  lcd_setup();
+  //  lcd_setup();
   Serial.println("Hello");
   Serial.println(ROCKER_IDLE_MIN);
   Serial.println(ROCKER_IDLE_MAX);
@@ -170,20 +181,20 @@ void calculate_rpm() {
 
 void log_motor(const int direction,const direction_table_t &table) {
   unsigned int pattern;
-    const bool running = is_running(table,pattern);
-    if(running) {    
-      rotations+=direction;
-      memset(hall_buffer,0,sizeof(hall_buffer));
-      hall_buffer_index=0;  
-      if(count%DELAYTIME==0) {
-        calculate_rpm();
-        Serial.print("revolutions-");
-        Serial.print(rotations/2);
-        //Serial.println();
-        Serial.print(";rpm=");
-      }
-      //Serial.println();  
+  const bool running = is_running(table,pattern);
+  if(running) {    
+    rotations+=direction;
+    memset(hall_buffer,0,sizeof(hall_buffer));
+    hall_buffer_index=0;  
+    if(count%RPM_SAMPLE_TIME==0) {
+      calculate_rpm();
+      Serial.print("revolutions-");
+      Serial.print(rotations/2);
+      //Serial.println();
+      Serial.print(";rpm=");
     }
+    //Serial.println();  
+  }
 }
 
 void read_motor()
@@ -197,8 +208,8 @@ void read_motor()
     //Serial.println();
     log_motor(FORWARD,forward_patterns);
     log_motor(REVERSE,reverse_patterns);
-//    Serial.print(";Hall=");
-//    Serial.println(hall_state);
+    //    Serial.print(";Hall=");
+    //    Serial.println(hall_state);
     last_hall_state = hall_state;
   }  
 }
@@ -210,9 +221,12 @@ void loop() {
 #else
 void loop() {
   pot1.service();
+
   //read_motor();
-  if(count%DELAYTIME==0) 
+
+  if(count%SPEED_SAMPLE_TIME==0) 
     read_speed_control();
+
   //int brake = read_brake_control(); // this'll probably be wired straight to motor
   //int reset = read_reset_button();
 

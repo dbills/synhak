@@ -30,19 +30,10 @@ const int STOPPED =  0;
 const int REVERSE = -1;
 
 typedef unsigned int hall_state_t;
-// external pot is gnd = max speed
-struct speed_input_t {
-  unsigned long last_read_time; // millis of last time
-  unsigned int set_speed;       // POT reading
-};
-// converging on the set speed is accomplished
-// add 1/X the delta between inputs on each sample
-// until Delta is less than some minimum
-// then directly assign  the value of the speed input
-const unsigned int SPEED_SAMPLE_TIME = 1000; // time between sampling speed input 
-#define DELAYTIME 5000
 
-speed_input_t last_speed_input;
+const unsigned int SPEED_SAMPLE_TIME = 5000; // time between sampling speed input 
+const unsigned int RPM_SAMPLE_TIME = 5000;   // loops between rpm calcs
+//speed_input_t last_speed_input;
 
 /*
   your sensor wiring may vary.  
