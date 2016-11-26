@@ -1,0 +1,5 @@
+*
+!*.ino
+!*.h
+!makefile
+!.gitignore
