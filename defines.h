@@ -22,8 +22,8 @@ const int ROCKER_IDLE_MAX = ROCKER_CENTER + ROCKER_DEADZONE;
 const int ROCKER_FORWARD_RANGE = MAX_ROCKER - ROCKER_IDLE_MAX;
 const int ROCKER_REVERSE_RANGE = ROCKER_IDLE_MIN - MIN_ROCKER ;
 const int POT_WIPER_STEPS = 64; 
-const int ROCKER_FORWARD_SCALE = ROCKER_FORWARD_RANGE / POT_WIPER_STEPS;
-const int ROCKER_REVERSE_SCALE = ROCKER_REVERSE_RANGE / POT_WIPER_STEPS;
+const float ROCKER_FORWARD_SCALE = (float)ROCKER_FORWARD_RANGE / (float)POT_WIPER_STEPS;
+const float ROCKER_REVERSE_SCALE = (float)ROCKER_REVERSE_RANGE / (float)POT_WIPER_STEPS;
 
 const int FORWARD =  1;
 const int STOPPED =  0;
@@ -40,7 +40,7 @@ struct speed_input_t {
 // until Delta is less than some minimum
 // then directly assign  the value of the speed input
 const unsigned int SPEED_SAMPLE_TIME = 1000; // time between sampling speed input 
-#define DELAYTIME 1000
+#define DELAYTIME 5000
 
 speed_input_t last_speed_input;
 

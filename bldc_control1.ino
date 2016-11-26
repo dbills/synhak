@@ -71,16 +71,9 @@ bool is_running(const direction_table_t &table,unsigned int &pattern) {
  */
 hall_state_t read_hall() {
   return 
-    ( digitalRead(HALL_A) ? 0 : HALL_A_BIT ) +
+    ( digitalRead(HALL_A) ? 0 :HALL_A_BIT ) +
     ( digitalRead(HALL_B) ? 0 :HALL_B_BIT ) +
     ( digitalRead(HALL_C) ? 0 :HALL_C_BIT );
-}
-
-void read_hall2() {
-  Serial.print(digitalRead(HALL_A));
-  Serial.print(digitalRead(HALL_B));
-  Serial.print(digitalRead(HALL_C));
-  Serial.println();
 }
 
 // return true if the speed control is in idle
@@ -90,17 +83,21 @@ inline boolean is_idle(unsigned int setting) {
 }
 
 inline void idle_motor() {
-  Serial.println("idle");
+  //Serial.println("idle");
   pot1.set_target(0);
 }
 inline int get_rpm() {
   return last_rpm;
 }
-inline void set_motor_direction(int direction)
+inline void set_motor_direction(const int direction)
 {
+  Serial.print(" SD<");
+  Serial.print(direction);
+  Serial.print(">");
+  last_direction=direction;
 }
 inline void change_direction(int direction,unsigned int target) {
-  if(get_rpm() > 0) {
+  if(get_rpm() > 0 || pot1.get_wiper()!=0){
     idle_motor();
   } else {
     set_motor_direction(direction);
@@ -109,23 +106,24 @@ inline void change_direction(int direction,unsigned int target) {
 }
 void read_speed_control() {
   unsigned int setting = analogRead(SPEED_INPUT);
-  
-//  if(count%DELAYTIME==0) {
-    Serial.print("Target: ");
-    Serial.print(setting);
-    Serial.println();
-//  }
-  
+  //Serial.print("Target: ");
+  //Serial.print(setting);
+  //Serial.println();
   if(is_idle(setting)) 
     idle_motor();
   else if(setting > ROCKER_IDLE_MAX) {
-    const int target = setting / ROCKER_FORWARD_SCALE; 
+    const unsigned target = (float)(setting - ROCKER_IDLE_MAX) / ROCKER_FORWARD_SCALE; 
+    //Serial.print("F");
+    //Serial.println(target);
     if(last_direction == FORWARD)    
       pot1.set_target(target);
     else
       change_direction(FORWARD,target);
-  } else {
-    const int target = setting / ROCKER_REVERSE_SCALE; 
+  } else if(setting < ROCKER_IDLE_MIN) {
+    const int target = ( POT_WIPER_STEPS - 1) -
+                       ( (float)(setting - MIN_ROCKER ) / ROCKER_REVERSE_SCALE );
+    //Serial.print("R");
+    //Serial.println(target);
     if(last_direction == REVERSE)
       pot1.set_target(target);
     else 
@@ -146,7 +144,14 @@ extern void lcd_setup();
 void setup() {
   Serial.begin(9600);
 //  lcd_setup();
-  Serial.println("hello");
+  Serial.println("Hello");
+  Serial.println(ROCKER_IDLE_MIN);
+  Serial.println(ROCKER_IDLE_MAX);
+  Serial.println(ROCKER_FORWARD_RANGE);
+  Serial.println(ROCKER_REVERSE_RANGE);
+  Serial.println(ROCKER_FORWARD_SCALE);
+  Serial.println(ROCKER_REVERSE_SCALE);
+  Serial.println("---");
 
   pinMode(HALL_A,INPUT_PULLUP);
   pinMode(HALL_B,INPUT_PULLUP);
@@ -206,7 +211,8 @@ void loop() {
 void loop() {
   pot1.service();
   //read_motor();
-  read_speed_control();
+  if(count%DELAYTIME==0) 
+    read_speed_control();
   //int brake = read_brake_control(); // this'll probably be wired straight to motor
   //int reset = read_reset_button();
 
@@ -215,7 +221,7 @@ void loop() {
   
   count++;
   
-  delay(3000);
+  //delay(300);
 }
 #endif
 void speed_up() {
