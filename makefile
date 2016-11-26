@@ -3,8 +3,10 @@ all: bldc_control1
 clean: 
 	rm -f *.o
 	rm -f test/*.o
+	rm -f *.cpp
 
 setup:
+	rm -f *.cpp
 	for i in `ls *.ino`;do ln $$i `basename $$i .ino`.cpp;done
 
 CPPFLAGS=-Itest -D_PC -Wall

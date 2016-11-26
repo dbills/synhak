@@ -12,7 +12,7 @@ const int SPEED_PWN = 5;
 // variable resistor input for motor speed control
 const int SPEED_INPUT = 0;
 // min and max values for analog read of motor control rocker switch pot
-const int MIN_ROCKER = 0;
+const int MIN_ROCKER = 0;  
 const int MAX_ROCKER = 1023;
 // dead space on speed control rocker that we consider "idle" position  
 const int ROCKER_DEADZONE = 12;

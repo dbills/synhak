@@ -12,7 +12,7 @@
   ring buffer or last three hall sensor reads
 */
 hall_state_t hall_buffer[HALL_NUMBERS];
-ds1809 pot1(2,3);
+ds1809 pot1(2,3); // uc_pin, dc_pin
 hall_state_t  last_hall_state=0;
 unsigned int  hall_buffer_index=0;
 
@@ -154,15 +154,18 @@ void set_counter() {
 extern void lcd_setup();
 void setup() {
   Serial.begin(9600);
+  pot1.initialize();
   //  lcd_setup();
-  Serial.println("Hello");
+  Serial.println("Resetting ds1809 ...");
+  pot1.hard_reset();
+  Serial.println("Constants:");
   Serial.println(ROCKER_IDLE_MIN);
   Serial.println(ROCKER_IDLE_MAX);
   Serial.println(ROCKER_FORWARD_RANGE);
   Serial.println(ROCKER_REVERSE_RANGE);
   Serial.println(ROCKER_FORWARD_SCALE);
   Serial.println(ROCKER_REVERSE_SCALE);
-  Serial.println("---");
+  Serial.println("Ready.");
 
   pinMode(HALL_A,INPUT_PULLUP);
   pinMode(HALL_B,INPUT_PULLUP);
@@ -220,6 +223,12 @@ void loop() {
 }
 #else
 void loop() {
+  /*
+  digitalWrite(3,HIGH);
+  digitalWrite(2,LOW);
+  return;
+  */
+  
   pot1.service();
 
   //read_motor();

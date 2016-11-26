@@ -13,18 +13,24 @@ public:
   static const unsigned int off_time  = 4; // ms
   
   ds1809(const unsigned int uc_pin,const unsigned int dc_pin);
+  void initialize();
   void set_target(unsigned int target);
   unsigned int get_wiper() { return wiper_position; }
   void service();
 
-  void activate_dc(){}
+  //void activate_dc(){}
+  void hard_reset();    // holds DC for 7 seconds and then resets
 
 private:  
-  void reset();
+  void reset();         // clears all control pins
   void pulse_uc();
   void pulse_dc();
-
-  void pulse_pin(unsigned int pin);
+  /*
+    in: pin to pulse ( must be uc_pin, or dc_pin )
+    out: true if pulse started, false if
+         insufficient pin high time has occurred since last pulse
+  */
+  bool pulse_pin(unsigned int pin);                   
   void update_wiper_position(int wiper_direction);
 
   unsigned int              wiper_target;    // desired wiper position
