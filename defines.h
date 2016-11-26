@@ -10,7 +10,7 @@ const int HALL_C_BIT = 2;
 const int MOTOR_BRAKE = 4;
 const int SPEED_PWN = 5;
 // variable resistor input for motor speed control
-const int SPEED_INPUT = 1;
+const int SPEED_INPUT = 0;
 // min and max values for analog read of motor control rocker switch pot
 const int MIN_ROCKER = 0;
 const int MAX_ROCKER = 1023;
@@ -40,6 +40,8 @@ struct speed_input_t {
 // until Delta is less than some minimum
 // then directly assign  the value of the speed input
 const unsigned int SPEED_SAMPLE_TIME = 1000; // time between sampling speed input 
+#define DELAYTIME 1000
+
 speed_input_t last_speed_input;
 
 /*

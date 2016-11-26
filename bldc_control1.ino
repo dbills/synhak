@@ -8,7 +8,6 @@
 #include "defines.h"
 #include "ds1809.h"
 
-#define DELAYTIME 100
 /*
   ring buffer or last three hall sensor reads
 */
@@ -91,28 +90,46 @@ inline boolean is_idle(unsigned int setting) {
 }
 
 inline void idle_motor() {
+  Serial.println("idle");
   pot1.set_target(0);
 }
-int get_rpm() {
-  return 0;
+inline int get_rpm() {
+  return last_rpm;
 }
-inline void change_direction(int direction) {
-    
+inline void set_motor_direction(int direction)
+{
+}
+inline void change_direction(int direction,unsigned int target) {
+  if(get_rpm() > 0) {
+    idle_motor();
+  } else {
+    set_motor_direction(direction);
+    pot1.set_target(target);
+  }    
 }
 void read_speed_control() {
   unsigned int setting = analogRead(SPEED_INPUT);
+  
+//  if(count%DELAYTIME==0) {
+    Serial.print("Target: ");
+    Serial.print(setting);
+    Serial.println();
+//  }
+  
   if(is_idle(setting)) 
     idle_motor();
   else if(setting > ROCKER_IDLE_MAX) {
+    const int target = setting / ROCKER_FORWARD_SCALE; 
     if(last_direction == FORWARD)    
-      pot1.set_target(setting / ROCKER_FORWARD_SCALE);
+      pot1.set_target(target);
     else
-      change_direction(FORWARD);
+      change_direction(FORWARD,target);
   } else {
+    const int target = setting / ROCKER_REVERSE_SCALE; 
     if(last_direction == REVERSE)
-      pot1.set_target(setting / ROCKER_REVERSE_SCALE);
+      pot1.set_target(target);
     else 
-      change_direction(REVERSE);
+      change_direction(REVERSE,target);
   }
 
 }
@@ -121,12 +138,14 @@ int read_brake_control() {
 }
 int read_reset_button() {
 }
-
+// update LCD
 void set_counter() {
 }
 
+extern void lcd_setup();
 void setup() {
   Serial.begin(9600);
+//  lcd_setup();
   Serial.println("hello");
 
   pinMode(HALL_A,INPUT_PULLUP);
@@ -151,7 +170,7 @@ void log_motor(const int direction,const direction_table_t &table) {
       rotations+=direction;
       memset(hall_buffer,0,sizeof(hall_buffer));
       hall_buffer_index=0;  
-      if(count++%DELAYTIME==0) {
+      if(count%DELAYTIME==0) {
         calculate_rpm();
         Serial.print("revolutions-");
         Serial.print(rotations/2);
@@ -178,19 +197,26 @@ void read_motor()
     last_hall_state = hall_state;
   }  
 }
-
+#if 0
+extern void lcd_test_loop();
+void loop() {
+  lcd_test_loop();
+}
+#else
 void loop() {
   pot1.service();
-  read_motor();
+  //read_motor();
   read_speed_control();
-  int brake = read_brake_control(); // this'll probably be wired straight to motor
-  int reset = read_reset_button();
+  //int brake = read_brake_control(); // this'll probably be wired straight to motor
+  //int reset = read_reset_button();
 
   
   set_counter();
   
-
+  count++;
+  
+  delay(3000);
 }
-
+#endif
 void speed_up() {
 }
