@@ -41,4 +41,10 @@ unsigned int analogRead(unsigned int);
 void analogWrite(unsigned int,unsigned int);
 unsigned int digitalRead(unsigned int);
 void digitalWrite(unsigned int,unsigned int);
+inline void pinMode(int,int){}
 extern unsigned int io_vec[];
+const int INPUT_PULLUP=2;
+const int INPUT=1;
+const int OUTPUT=0;
+const int HIGH=1;
+const int LOW=0;

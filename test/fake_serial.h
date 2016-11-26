@@ -32,6 +32,9 @@ public:
   template<typename T> void println(T v) {
     std::cout<<v<<std::endl;
   }
+  void println() {
+    std::cout<<std::endl;
+  }
 };
 
 extern FakeSerial Serial;

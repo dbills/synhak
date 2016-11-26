@@ -1,3 +1,9 @@
+#ifdef _PC
+#include <stdlib.h>
+#include <mock_arduino.h>
+#include <fake_serial.h>
+#include <memory.h>
+#endif
 #include "ds1809.h"
 
 ds1809::ds1809(int uc_pin,int dc_pin):
