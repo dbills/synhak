@@ -9,10 +9,10 @@
 #include "ds1809.h"
 
 /*
-  ring buffer or last three hall sensor reads
+  ring buffer of hall sensor reads
 */
-hall_state_t hall_buffer[HALL_NUMBERS];
-ds1809 pot1(2,3); // uc_pin, dc_pin
+hall_state_t  hall_buffer[HALL_NUMBERS];
+ds1809        pot1(2,3); // uc_pin, dc_pin
 hall_state_t  last_hall_state=0;
 unsigned int  hall_buffer_index=0;
 
@@ -21,13 +21,18 @@ int  rotations=0;
 
 // use for rpm calculations
 unsigned long rotations_timestamp=0;
-int rotation_count=0;
+// positive numbers for forward, negative for reverse
+int           rotation_count=0;
 
 int           last_direction=0;   // last known motor direction
 unsigned int  count=0;
 unsigned int  last_rpm=0;         // last calculated rpm
 
-direction_table_t reverse_patterns={
+/*
+  all possible patterns of hall sensors in 
+  a reverse rotation
+ */
+static const direction_table_t reverse_patterns={
   { 1,3,2,6,4,5},
   { 3,2,6,4,5,1},
   { 2,6,4,5,1,3},
@@ -35,7 +40,11 @@ direction_table_t reverse_patterns={
   { 4,5,1,3,2,6},
   { 5,1,3,2,6,4}
 };
-direction_table_t forward_patterns={
+/*
+  all possible patterns of hall sensors in 
+  a forward rotation
+ */
+static const direction_table_t forward_patterns={
   { 5,4,6,2,3,1},
   { 4,6,2,3,1,5},
   { 6,2,3,1,5,4},
@@ -74,10 +83,7 @@ inline bool is_running(const direction_table_t &table) {
 
 /*
   read hall effect sensors and return 
-  integer value 1,2 or 4
-  any other value is a fault of some sort
-  as no two hall sensors should be on at the same
-  time
+  integer value 
 */
 hall_state_t read_hall() {
   return 
@@ -88,7 +94,7 @@ hall_state_t read_hall() {
 
 // return true if the speed control is in idle
 // position
-inline bool is_idle(unsigned int setting) {
+inline bool is_idle(const unsigned int setting) {
   return (setting > ROCKER_IDLE_MIN && setting < ROCKER_IDLE_MAX);
 }
 
@@ -96,9 +102,11 @@ inline void idle_motor() {
   //Serial.println("idle");
   pot1.set_target(0);
 }
+
 inline int get_rpm() {
   return last_rpm;
 }
+
 inline void set_motor_direction(const int direction)
 {
   Serial.print(" SD<");
@@ -106,7 +114,8 @@ inline void set_motor_direction(const int direction)
   Serial.print(">");
   last_direction=direction;
 }
-inline void change_direction(int direction,unsigned int target) {
+
+inline void change_direction(const int direction,const unsigned int target) {
   if(get_rpm() > 0 || pot1.get_wiper()!=0){
     idle_motor();
   } else {
@@ -114,8 +123,9 @@ inline void change_direction(int direction,unsigned int target) {
     pot1.set_target(target);
   }    
 }
+
 void read_speed_control() {
-  unsigned int setting = analogRead(SPEED_INPUT);
+  const unsigned int setting = analogRead(SPEED_INPUT);
   //Serial.print("Target: ");
   //Serial.print(setting);
   //Serial.println();
@@ -141,17 +151,22 @@ void read_speed_control() {
   }
 
 }
+
 int read_brake_control() {
   return 0;
 }
+
 int read_reset_button() {
   return 0;
 }
-// update LCD
+/*
+  update the lcd display
+ */
 void set_counter() {
 }
 
 extern void lcd_setup();
+
 void setup() {
   Serial.begin(9600);
   pot1.initialize();
@@ -173,9 +188,9 @@ void setup() {
 }
 
 void calculate_rpm() {
-  unsigned long current_time = millis();
+  const unsigned long current_time = millis();
   if(rotations_timestamp!=0) {
-    unsigned long deltaT = current_time - rotations_timestamp;
+    const unsigned long deltaT = current_time - rotations_timestamp;
     last_rpm = float(rotation_count/2*60) / ( (float)deltaT/1000.0);
   }
   rotations_timestamp = current_time;
@@ -202,7 +217,7 @@ void log_motor(const int direction,const direction_table_t &table) {
 
 void read_motor()
 {
-  hall_state_t hall_state = read_hall();
+  const hall_state_t hall_state = read_hall();
   if(hall_state!=last_hall_state) {
     hall_buffer[hall_buffer_index++]=hall_state;
     if(hall_buffer_index == HALL_NUMBERS)
@@ -244,8 +259,5 @@ void loop() {
   
   count++;
   
-  //delay(300);
 }
 #endif
-void speed_up() {
-}

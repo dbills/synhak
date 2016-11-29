@@ -6,25 +6,32 @@
   This is a horrible chip to use for an arduino, as it
   only supports relative setting of the wiper
   so we must "hope" we never lose track of the wiper
+  
+  we attempt to resync the wiper when we are in the 'idle'
+  position for longer than 64 pulse intervals
+  we then 'assume' that surely the wiper must be at position 0
+  and set it so, on the O-scope, when you are in set_target(0)
+  you should see a constant pulse train on the DC pin
  */
 class ds1809 {
 public:
   static const unsigned int pulse_width = 4;   // ms
-  static const unsigned int off_time  = 4; // ms
+  static const unsigned int off_time    = 4;   // ms
   
-  ds1809(const unsigned int uc_pin,const unsigned int dc_pin);
-  void initialize();
+  ds1809(unsigned int uc_pin,unsigned int dc_pin);
+  
+  void initialize(); // arduino 'setup' 
+  
   void set_target(unsigned int target);
-  unsigned int get_wiper() { return wiper_position; }
-  void service();
+  void service();       // call from your main loop as often as possible
 
-  //void activate_dc(){}
   void hard_reset();    // holds DC for 7 seconds and then resets
 
+  unsigned int get_wiper() const { return wiper_position; }
 private:  
   void reset();         // clears all control pins
-  void pulse_uc();
-  void pulse_dc();
+  void pulse_uc();      // move wiper up one
+  void pulse_dc();      // move wiper down one
   /*
     in: pin to pulse ( must be uc_pin, or dc_pin )
     out: true if pulse started, false if

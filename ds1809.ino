@@ -76,6 +76,7 @@ void ds1809::service() {
     }
   }
 }
+
 void ds1809::hard_reset() {
   // atempt to bring wiper to 0
   digitalWrite(uc_pin,HIGH);
@@ -118,8 +119,7 @@ void ds1809::pulse_dc() {
     dc_count++;
 }
 
-
-bool ds1809::pulse_pin(unsigned int pin) {
+bool ds1809::pulse_pin(const unsigned int pin) {
   if(pin!=uc_pin&&pin!=dc_pin)
     return false;
     
