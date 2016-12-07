@@ -39,48 +39,56 @@ void lcd_setup()
   }
   lcd.backlight(); // finish with backlight on  
 
-//-------- Write characters on the display ------------------
-// NOTE: Cursor Position: (CHAR, LINE) start at 0  
-  lcd.setCursor(0,0); //Start at character 4 on line 0
-  lcd.print("Hello, world!");
-  delay(1000);
-  lcd.setCursor(0,1);
-  lcd.print("HI!YourDuino.com");
-  delay(8000);  
+}
 
-// Wait and then tell user they can start the Serial Monitor and type in characters to
-// Display. (Set Serial Monitor option to "No Line Ending")
-  lcd.clear();
-  lcd.setCursor(0,0); //Start at character 0 on line 0
-  lcd.print("Use Serial Mon");
-  lcd.setCursor(0,1);
-  lcd.print("Type to display");  
-
-
-}/*--(end setup )---*/
-
-
-void lcd_test_loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
-{
-  {
-    // when characters arrive over the serial port...
-    if (Serial.available()) {
-      // wait a bit for the entire message to arrive
-      delay(100);
-      // clear the screen
-      lcd.clear();
-      // read all the available characters
-      while (Serial.available() > 0) {
-        // display each character to the LCD
-        lcd.write(Serial.read());
-      }
-    }
+static int calc_numsize(int x) {
+  int i=0;
+  while(1) {
+    x=x/10;
+    i++;
+    if(x==0)
+      break;
   }
+  return i;
+}
 
-}/* --(end main loop )-- */
+static void _lcd_update(int rotations,int rpm) {
+  lcd.setCursor(0,0); //Start at character 4 on line 0
+  // 1234567890123456
+  //  Revs:  |   RPM:
+  // +00000  |  +6000
+  lcd.print("  Revs  |  RPM  ");
+  lcd.setCursor(0,1);
+  String line2;
+  if(rotations>=0)
+    line2+=".+";
+  else
+    line2+=".";
+  
+  int sz=calc_numsize(rotations);
+  for(int i=0;i<5-sz;i++) {
+    line2+=".";
+  }
+  line2+=rotations;
+  line2+="_|__";
+  
+  sz=calc_numsize(rpm);
+  for(int i=0;i<4-sz;i++) {
+    line2+=".";
+  }
+  line2+=rpm;    
+  
+  lcd.print(line2);
+}
 
+static unsigned long last_update=0;
 
-/* ( THE END ) */
+void lcd_update(int rotations,int rpm) {
+  if(millis()-last_update > 750) {
+    _lcd_update(rotations,rpm);
+    last_update=millis();
+  }
+}
 
 
 

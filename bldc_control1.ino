@@ -170,9 +170,9 @@ extern void lcd_setup();
 void setup() {
   Serial.begin(9600);
   pot1.initialize();
-  //  lcd_setup();
+    lcd_setup();
   Serial.println("Resetting ds1809 ...");
-  pot1.hard_reset();
+  //pot1.hard_reset();
   Serial.println("Constants:");
   Serial.println(ROCKER_IDLE_MIN);
   Serial.println(ROCKER_IDLE_MAX);
@@ -231,12 +231,9 @@ void read_motor()
     last_hall_state = hall_state;
   }  
 }
-#if 0
-extern void lcd_test_loop();
-void loop() {
-  lcd_test_loop();
-}
-#else
+
+extern void lcd_update(int,int);
+static unsigned last_print=0;
 void loop() {
   /*
   digitalWrite(3,HIGH);
@@ -247,9 +244,19 @@ void loop() {
   pot1.service();
 
   //read_motor();
+  
+  lcd_update(rotation_count, 0);
+  if(rotation_count>90000)
+    rotation_count=0;
 
-  if(count%SPEED_SAMPLE_TIME==0) 
+  if(millis()-last_print>100) {
+    rotation_count+=9;
+    last_print=millis();
+  }
+
+  if(count%SPEED_SAMPLE_TIME==0) {
     read_speed_control();
+  }
 
   //int brake = read_brake_control(); // this'll probably be wired straight to motor
   //int reset = read_reset_button();
@@ -260,4 +267,4 @@ void loop() {
   count++;
   
 }
-#endif
+
