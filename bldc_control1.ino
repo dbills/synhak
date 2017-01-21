@@ -113,6 +113,11 @@ inline void set_motor_direction(const int direction)
   Serial.print(direction);
   Serial.print(">");
   last_direction=direction;
+  if(direction==FORWARD)
+    digitalWrite(DIRECTION_OUTPUT,HIGH);
+  else
+    digitalWrite(DIRECTION_OUTPUT,LOW);
+  
 }
 
 inline void change_direction(const int direction,const unsigned int target) {
@@ -152,19 +157,12 @@ void read_speed_control() {
 
 }
 
-int read_brake_control() {
-  return 0;
+void read_reset_button() {
+  if(digitalRead(RESET_BUTTON)==0) {
+    Serial.println("reset pressed");
+    rotation_count=0;
+  }
 }
-
-int read_reset_button() {
-  return 0;
-}
-/*
-  update the lcd display
- */
-void set_counter() {
-}
-
 extern void lcd_setup();
 
 void setup() {
@@ -185,6 +183,8 @@ void setup() {
   pinMode(HALL_A,INPUT_PULLUP);
   pinMode(HALL_B,INPUT_PULLUP);
   pinMode(HALL_C,INPUT_PULLUP);
+  pinMode(RESET_BUTTON,INPUT_PULLUP);
+  pinMode(DIRECTION_OUTPUT,OUTPUT);
 }
 
 void calculate_rpm() {
@@ -202,9 +202,10 @@ void log_motor(const int direction,const direction_table_t &table) {
   const bool running = is_running(table,pattern);
   if(running) {    
     rotations+=direction;
+    
     memset(hall_buffer,0,sizeof(hall_buffer));
     hall_buffer_index=0;  
-    if(count%RPM_SAMPLE_TIME==0) {
+    if(1||count%RPM_SAMPLE_TIME==0) {
       calculate_rpm();
       Serial.print("revolutions-");
       Serial.print(rotations/2);
@@ -226,8 +227,8 @@ void read_motor()
     //Serial.println();
     log_motor(FORWARD,forward_patterns);
     log_motor(REVERSE,reverse_patterns);
-    //    Serial.print(";Hall=");
-    //    Serial.println(hall_state);
+        Serial.print(";Hall=");
+        Serial.println(hall_state);
     last_hall_state = hall_state;
   }  
 }
@@ -235,35 +236,20 @@ void read_motor()
 extern void lcd_update(int,int);
 static unsigned last_print=0;
 void loop() {
-  /*
-  digitalWrite(3,HIGH);
-  digitalWrite(2,LOW);
-  return;
-  */
   
-  pot1.service();
+  //pot1.service();
 
-  //read_motor();
+  read_motor();
   
   lcd_update(rotation_count, 0);
-  if(rotation_count>90000)
-    rotation_count=0;
-
-  if(millis()-last_print>100) {
-    rotation_count+=9;
-    last_print=millis();
-  }
 
   if(count%SPEED_SAMPLE_TIME==0) {
-    read_speed_control();
+    //read_speed_control();
   }
 
   //int brake = read_brake_control(); // this'll probably be wired straight to motor
-  //int reset = read_reset_button();
+  read_reset_button();
 
-  
-  set_counter();
-  
   count++;
   
 }

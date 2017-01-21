@@ -35,8 +35,8 @@ void ds1809::set_target(unsigned int target) {
   if(target==wiper_target)
     return;
     
-  Serial.print("set: ");
-  Serial.println(target);
+  //Serial.print("set: ");
+  //Serial.println(target);
   
   if(target<=63)
     wiper_target=target;
@@ -130,8 +130,8 @@ bool ds1809::pulse_pin(const unsigned int pin) {
       pulse_stop=0;
 //      Serial.print(delta);
 //      Serial.print(pin==uc_pin?"U":"D");
-      if(++column_count%64==0)
-        Serial.println();
+      //if(++column_count%64==0)
+      //  Serial.println();
       digitalWrite(pin,LOW);
       pulse_start=::millis();
       return true;

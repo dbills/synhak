@@ -1,18 +1,26 @@
 // UNO prototype 1 board connections when facing board hat
 /*   ________________________
     /                        |
-    |                        |
-    |      C2/4              |
+    |      C4/3              |
+    |      C2/3              |
     | C3/4                   |
     |      C1/4              |
     
     
     C1 yellow/white/black/black
     C2 motor controller
-    C3 rocker Switvh green/yellow/white/blue
+    C2-1 Pot Pwr   ( ds1809 p1 )
+    C2-2 Pot Wiper ( ds1809 p6 )
+    C2-3 Pot Gnd   ( ds1809 p4 )
+    
+    C3 rocker Switch green/yellow/white/blue
     C3-1 : Gnd
     C3-2 : +5
     C4-Wiper ( Arduino A0)   
+    
+    C4-1 Hall-A
+    C4-2 Hall-B
+    C4-3 Hall-C
        
     2560
      __________________________________________
@@ -63,16 +71,17 @@
 */
 
 // hall effect pin assignemnts
-const int HALL_A = 4;
-const int HALL_B = 5;
-const int HALL_C = 6;
+const int HALL_A = 10;
+const int HALL_B = 11;
+const int HALL_C = 12;
 // hall effect bit assignment
 const int HALL_A_BIT = 4;
 const int HALL_B_BIT = 1;
 const int HALL_C_BIT = 2;
 // misc control panel digital IO functions
-const int MOTOR_BRAKE = 4;
-const int SPEED_PWN = 5;
+const int MOTOR_BRAKE = 9;
+const int RESET_BUTTON = 4;
+const int DIRECTION_OUTPUT = 5;
 // variable resistor input for motor speed control
 const int SPEED_INPUT = 0; 
 // min and max values for analog read of motor control rocker switch pot
@@ -92,6 +101,8 @@ const float ROCKER_REVERSE_SCALE = (float)ROCKER_REVERSE_RANGE / (float)POT_WIPE
 const int FORWARD =  1;
 const int STOPPED =  0;
 const int REVERSE = -1;
+
+
 
 typedef unsigned int hall_state_t;
 
