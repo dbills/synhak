@@ -70,10 +70,10 @@ static void _lcd_update(int rotations,int rpm) {
     line2+=".";
   }
   line2+=rotations;
-  line2+="_|__";
+  line2+=".|..";
   
   sz=calc_numsize(rpm);
-  for(int i=0;i<4-sz;i++) {
+  for(int i=0;i<5-sz;i++) {
     line2+=".";
   }
   line2+=rpm;    

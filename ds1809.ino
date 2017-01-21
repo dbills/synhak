@@ -38,14 +38,14 @@ void ds1809::set_target(unsigned int target) {
   //Serial.print("set: ");
   //Serial.println(target);
   
-  if(target<=63)
+  if(target<=64)
     wiper_target=target;
 }
 
 void ds1809::update_wiper_position(int wiper_direction)
 {
   const unsigned int new_position=wiper_position + wiper_direction;
-  if(new_position<64 && new_position>=0) {
+  if(new_position<=64 && new_position>=0) {
     wiper_position=new_position;
     //Serial.print(wiper_position);
   }
